@@ -36,7 +36,7 @@ while True:
 # Save session
 timestamp = datetime.datetime.now().isoformat()
 name = input("Session name: ")
-f = open('sessions/' + timestamp + "_" + name + '.txt', 'w')
+f = open('sessions/' + timestamp[:-7] + "_" + name + '.txt', 'w')
 f.write(session)
 f.close()
 
