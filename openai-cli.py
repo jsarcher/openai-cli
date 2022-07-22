@@ -6,8 +6,6 @@ import argparse
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-
-
 print("openai-cli 0.0.1")
 print("OpenAI API Command Line Interface")
 print("Type \"help\" for usage information or \"quit\" to exit the utility.")
