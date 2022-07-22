@@ -39,9 +39,12 @@ assert args.presence_penalty >= 0 and args.presence_penalty <= 2, "presence_pena
 
 # Get prompt and session
 prompt = args.input
-f = open(args.session)
-session = f.read()
-f.close()
+try:
+    f = open(args.session)
+    session = f.read()
+    f.close()
+except:
+    session = ""
 
 # Print loaded session
 print(session)
@@ -59,6 +62,7 @@ while True:
         break
     if prompt == "help":
         parser.print_help()
+        prompt = ""
         continue
 
     # Add prompt to current session
