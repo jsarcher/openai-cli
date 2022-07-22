@@ -54,7 +54,13 @@ optional arguments:
 
 ## Example
 
-Below is an example session using the openai-cli utility. In this session the AI is talking about recent progress in AI technology. The session gets ended with quit and a session file is written to the sesssions folder.
+The openai-cli accepts input data through pipes.
+
+```
+cat examples/input.txt | ./openai-cli.py
+```
+
+But openai-cli can also be operated in an interactive mode. Below is an example session using the openai-cli utility. In this session the AI is talking about recent progress in AI technology. The session gets ended with quit and a session file is written to the sesssions folder.
 
 ```
 $ ./openai-cli.py

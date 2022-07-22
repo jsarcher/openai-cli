@@ -1,20 +1,22 @@
 #!/usr/bin/python3
 
 import os
+import sys
 import openai
 import argparse
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-print("openai-cli 0.0.1")
-print("OpenAI API Command Line Interface")
-print("Type \"help\" for usage information or \"quit\" to exit the utility.")
+if sys.stdin.isatty():
+    print("openai-cli 0.0.1")
+    print("OpenAI API Command Line Interface")
+    print("Type \"help\" for usage information or \"quit\" to exit the utility.")
 
 # Initialize parser
 parser = argparse.ArgumentParser(description="\nEnter an instruction and watch the API respond with a completion that attempts to match the context or pattern you provided.\n\n")
 
 # Adding optional argument
-parser.add_argument("-i", "--input", help = "Uses INPUT as prompt. Otherwise interactive prompt is activated.", type=str, default="")
+parser.add_argument("-i", "--input", help = "Uses INPUT as prompt.", type=str, default="")
 parser.add_argument("-o", "--output", help = "Saves session to OUTPUT file.", type=str, default="")
 parser.add_argument("-s", "--session", help = "Load session from SESSION file.", type=str, default="")
 parser.add_argument("-t", "--temperature", help = "Controls randomness: Lowering results in less random completions. As the temperature approaches zero, the model will become deterministic and repetitive.", type=float, default=0.5)
@@ -45,15 +47,27 @@ except:
     session = ""
 
 # Print loaded session
-print(session)
+print(session, end="")
+
+# Total tokens consumed
+total_tokens = 0
 
 while True:
 
-    # Get prompt
-    if prompt == "":
-        prompt = input(">>> ")
+    # Select prompt source
+    if sys.stdin.isatty():
+        if prompt == "":
+            prompt = input(">>> ")
+        else:
+            print(">>> " + prompt)
     else:
-        print(">>> " + prompt)
+        while True:
+            try:
+                prompt = prompt + "\n" + input()
+            except:
+                print(prompt[1:], end="")
+                sys.stdout.flush()
+                break
 
     # Check for prompt key words
     if prompt == "exit" or prompt == "quit":
@@ -67,7 +81,7 @@ while True:
     session = session + prompt
     
     # Execute OpenAI API request
-    completion = openai.Completion.create(
+    response = openai.Completion.create(
         model="text-davinci-002",
         prompt=session,
         temperature=args.temperature,
@@ -76,16 +90,26 @@ while True:
         frequency_penalty=args.frequency_penalty,
         presence_penalty=args.presence_penalty,
         echo=False
-        )["choices"][-1]["text"]
-    
+        )
+
+    # Get total tokens
+    total_tokens = response["usage"]["total_tokens"]
+
+    # Extract completion
+    completion = response["choices"][-1]["text"]
+
     # Print completion
-    print(completion[1:] + "\n\n")
+    print(completion + "\n\n")
     
     # Add completion to current session
     session = session + completion + "\n\n\n" 
 
     # Clear prompt for next iteration
     prompt = ""
+
+    # Break if stdin is not a interactive input device
+    if not sys.stdin.isatty():
+        break
     
 
 # Save session
@@ -93,12 +117,13 @@ if session != "":
     if args.output != "":
         name = args.output
     else:
-        name = "sessions/" + input("Session name: ") + ".txt"
+        if sys.stdin.isatty():
+            name = "sessions/" + input("Session name: ") + ".txt"
+        else:
+            name = ""
 
     if name != "":
         f = open(name, 'w')
         f.write(session)
         f.close()
-
-
 
